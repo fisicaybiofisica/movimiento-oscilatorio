@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="Simulador universitario de movimiento oscilatorio: masa-resorte vertical sin amortiguamiento, con medio viscoso y oscilación forzada."
+    >
+    <title>Movimiento oscilatorio | Sistema masa-resorte vertical</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#simulador" aria-label="Ir al simulador">
+        <span class="brand-mark" aria-hidden="true">MO</span>
+        <span>
+          <strong>Movimiento oscilatorio</strong>
+          <small>Sistema masa-resorte vertical</small>
+        </span>
+      </a>
+      <nav class="site-nav" aria-label="Navegación principal">
+        <a href="#simulador">Simulador</a>
+        <a href="#laboratorio">Laboratorio guiado</a>
+        <a href="#teoria">Teoría</a>
+        <a href="#docente">Guía docente</a>
+        <a href="#publicar">GitHub Pages</a>
+      </nav>
+    </header>
+
+    <main>
+      <section id="simulador" class="section workbench" aria-labelledby="sim-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Práctica virtual interactiva</p>
+            <h1 id="sim-title">Simulador de masa-resorte vertical</h1>
+            <p class="lede">
+              Explora el movimiento armónico simple, el amortiguamiento viscoso y la
+              resonancia forzada con un montaje pensado para estudiantes universitarios.
+            </p>
+          </div>
+          <div class="mode-tabs" role="tablist" aria-label="Escenario de simulación">
+            <button class="mode-tab is-active" type="button" data-mode="free" role="tab" aria-selected="true">
+              <i data-lucide="activity" aria-hidden="true"></i>
+              Sin amortiguamiento
+            </button>
+            <button class="mode-tab" type="button" data-mode="damped" role="tab" aria-selected="false">
+              <i data-lucide="droplets" aria-hidden="true"></i>
+              Medio viscoso
+            </button>
+            <button class="mode-tab" type="button" data-mode="forced" role="tab" aria-selected="false">
+              <i data-lucide="rotate-cw" aria-hidden="true"></i>
+              Oscilación forzada
+            </button>
+          </div>
+        </div>
+
+        <div class="sim-grid">
+          <section class="panel stage-panel" aria-label="Montaje virtual">
+            <div class="panel-title">
+              <div>
+                <p class="eyebrow">Montaje</p>
+                <h2>Resorte, masa y referencia de equilibrio</h2>
+              </div>
+              <div class="status-pill" id="regimePill">Movimiento armónico simple</div>
+            </div>
+            <canvas id="simulationCanvas" class="simulation-canvas" width="960" height="760">
+              Tu navegador no permite mostrar el simulador en canvas.
+            </canvas>
+            <div class="readout-grid" aria-label="Lecturas de la simulación">
+              <article>
+                <span>Tiempo</span>
+                <strong id="timeReadout">0.00 s</strong>
+              </article>
+              <article>
+                <span>Desplazamiento</span>
+                <strong id="xReadout">12.0 cm</strong>
+              </article>
+              <article>
+                <span>Velocidad</span>
+                <strong id="vReadout">0.0 cm/s</strong>
+              </article>
+              <article>
+                <span>Periodo natural</span>
+                <strong id="periodReadout">0.63 s</strong>
+              </article>
+              <article>
+                <span>Razón ζ</span>
+                <strong id="zetaReadout">0.00</strong>
+              </article>
+              <article>
+                <span>Energía total</span>
+                <strong id="energyReadout">0.058 J</strong>
+              </article>
+            </div>
+          </section>
+
+          <aside class="panel controls-panel" aria-label="Controles del simulador">
+            <div class="playbar">
+              <button class="icon-button primary" type="button" id="playButton" aria-label="Reproducir o pausar">
+                <i data-lucide="play" aria-hidden="true"></i>
+              </button>
+              <button class="icon-button" type="button" id="resetButton" aria-label="Reiniciar simulación">
+                <i data-lucide="rotate-ccw" aria-hidden="true"></i>
+              </button>
+              <button class="icon-button" type="button" id="kickButton" aria-label="Aplicar impulso corto">
+                <i data-lucide="zap" aria-hidden="true"></i>
+              </button>
+              <label class="select-wrap" for="speedSelect">
+                <span>Ritmo</span>
+                <select id="speedSelect">
+                  <option value="0.35">Lento</option>
+                  <option value="1" selected>Normal</option>
+                  <option value="1.75">Rápido</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="control-group">
+              <h3>Parámetros del montaje</h3>
+              <label class="range-row" for="massInput">
+                <span>Masa <output id="massValue">250 g</output></span>
+                <input id="massInput" type="range" min="50" max="1200" step="10" value="250">
+              </label>
+              <label class="range-row" for="springInput">
+                <span>Constante del resorte <output id="springValue">18 N/m</output></span>
+                <input id="springInput" type="range" min="4" max="90" step="1" value="18">
+              </label>
+              <label class="range-row" for="amplitudeInput">
+                <span>Amplitud inicial <output id="amplitudeValue">12 cm</output></span>
+                <input id="amplitudeInput" type="range" min="2" max="28" step="1" value="12">
+              </label>
+              <label class="range-row" for="gravityInput">
+                <span>Gravedad <output id="gravityValue">9.8 m/s²</output></span>
+                <input id="gravityInput" type="range" min="0" max="24" step="0.1" value="9.8">
+              </label>
+            </div>
+
+            <div class="control-group mode-only" data-visible-mode="damped,forced">
+              <h3>Medio viscoso</h3>
+              <label class="select-wrap wide" for="mediumSelect">
+                <span>Medio</span>
+                <select id="mediumSelect">
+                  <option value="air">Aire</option>
+                  <option value="water" selected>Agua</option>
+                  <option value="lightOil">Aceite ligero</option>
+                  <option value="glycerin">Glicerina</option>
+                  <option value="custom">Personalizado</option>
+                </select>
+              </label>
+              <label class="range-row" for="dampingInput">
+                <span>Coeficiente b <output id="dampingValue">0.10 N·s/m</output></span>
+                <input id="dampingInput" type="range" min="0" max="1.8" step="0.01" value="0.10">
+              </label>
+            </div>
+
+            <div class="control-group mode-only" data-visible-mode="forced">
+              <h3>Motor de excitación</h3>
+              <label class="range-row" for="forceInput">
+                <span>Fuerza del motor <output id="forceValue">0.55 N</output></span>
+                <input id="forceInput" type="range" min="0" max="2.2" step="0.05" value="0.55">
+              </label>
+              <label class="range-row" for="driveInput">
+                <span>Frecuencia del motor <output id="driveValue">1.00 Hz</output></span>
+                <input id="driveInput" type="range" min="0.1" max="4.0" step="0.01" value="1.00">
+              </label>
+              <button class="text-button" type="button" id="resonanceButton">
+                <i data-lucide="target" aria-hidden="true"></i>
+                Ajustar cerca de resonancia
+              </button>
+            </div>
+
+            <div class="control-group">
+              <h3>Capas visuales</h3>
+              <label class="check-row">
+                <input id="showVelocity" type="checkbox" checked>
+                <span>Vector velocidad</span>
+              </label>
+              <label class="check-row">
+                <input id="showAcceleration" type="checkbox" checked>
+                <span>Vector aceleración</span>
+              </label>
+              <label class="check-row">
+                <input id="showEquilibrium" type="checkbox" checked>
+                <span>Línea de equilibrio</span>
+              </label>
+              <label class="check-row">
+                <input id="showTrace" type="checkbox" checked>
+                <span>Rastro temporal de la masa</span>
+              </label>
+            </div>
+
+            <article class="insight-card" id="insightCard">
+              <span class="eyebrow">Lectura física</span>
+              <h3>La gravedad cambia el punto de equilibrio, no el periodo.</h3>
+              <p>
+                Para oscilaciones pequeñas, el periodo natural depende de la masa y
+                de la constante del resorte: T = 2π√(m/k).
+              </p>
+            </article>
+          </aside>
+
+          <section class="panel graph-panel" aria-label="Gráfica en tiempo real">
+            <div class="panel-title graph-title">
+              <div>
+                <p class="eyebrow">Datos en tiempo real</p>
+                <h2>Amplitud respecto al equilibrio</h2>
+              </div>
+              <div class="segmented" role="tablist" aria-label="Tipo de gráfica">
+                <button type="button" class="segment is-active" data-graph="time">x(t)</button>
+                <button type="button" class="segment" data-graph="phase">Fase</button>
+                <button type="button" class="segment" data-graph="energy">Energía</button>
+              </div>
+            </div>
+            <canvas id="graphCanvas" class="graph-canvas" width="1200" height="520">
+              Tu navegador no permite mostrar la gráfica.
+            </canvas>
+            <div class="graph-footer">
+              <div class="legend">
+                <span><i class="line line-x"></i> Desplazamiento</span>
+                <span><i class="line line-v"></i> Velocidad</span>
+                <span><i class="line line-e"></i> Energía total</span>
+              </div>
+              <button class="text-button" type="button" id="exportButton">
+                <i data-lucide="download" aria-hidden="true"></i>
+                Exportar CSV
+              </button>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section id="laboratorio" class="section guided-section" aria-labelledby="lab-title">
+        <div class="section-heading compact">
+          <div>
+            <p class="eyebrow">Laboratorio guiado</p>
+            <h2 id="lab-title">Tres rutas para preparar y discutir la práctica real</h2>
+          </div>
+          <p class="section-note">
+            Cada ruta configura el simulador y propone una pregunta medible. Úsalas
+            antes de entrar al laboratorio, durante el análisis o como cierre de clase.
+          </p>
+        </div>
+
+        <div class="lab-grid">
+          <article class="lab-card">
+            <div class="lab-number">01</div>
+            <h3>Periodo natural y constante elástica</h3>
+            <p>
+              Varía la masa y observa si el periodo cambia como √m. Después estima k
+              a partir de T y compárala con el valor del control.
+            </p>
+            <ol>
+              <li>Elige dos masas separadas.</li>
+              <li>Mide tres periodos en la gráfica x(t).</li>
+              <li>Calcula k = 4π²m/T².</li>
+            </ol>
+            <button class="text-button preset-button" type="button" data-preset="natural">
+              <i data-lucide="flask-conical" aria-hidden="true"></i>
+              Cargar ruta 01
+            </button>
+          </article>
+
+          <article class="lab-card">
+            <div class="lab-number">02</div>
+            <h3>Amortiguamiento en medios viscosos</h3>
+            <p>
+              Compara aire, agua, aceite y glicerina. La envolvente de la gráfica
+              permite discutir disipación, energía y razón de amortiguamiento ζ.
+            </p>
+            <ol>
+              <li>Activa el medio viscoso.</li>
+              <li>Observa la pérdida de amplitud en el tiempo.</li>
+              <li>Identifica subamortiguamiento, crítico o sobreamortiguamiento.</li>
+            </ol>
+            <button class="text-button preset-button" type="button" data-preset="damping">
+              <i data-lucide="waves" aria-hidden="true"></i>
+              Cargar ruta 02
+            </button>
+          </article>
+
+          <article class="lab-card">
+            <div class="lab-number">03</div>
+            <h3>Resonancia con motor</h3>
+            <p>
+              Acopla el resorte a una excitación periódica y barre la frecuencia del
+              motor. Cerca de la frecuencia natural aparece una respuesta máxima.
+            </p>
+            <ol>
+              <li>Usa un amortiguamiento moderado.</li>
+              <li>Modifica la frecuencia del motor lentamente.</li>
+              <li>Registra la amplitud estacionaria.</li>
+            </ol>
+            <button class="text-button preset-button" type="button" data-preset="forced">
+              <i data-lucide="radio-tower" aria-hidden="true"></i>
+              Cargar ruta 03
+            </button>
+          </article>
+        </div>
+      </section>
+
+      <section id="teoria" class="section theory-section" aria-labelledby="theory-title">
+        <div class="section-heading compact">
+          <div>
+            <p class="eyebrow">Teoría detrás del montaje</p>
+            <h2 id="theory-title">Modelo físico que gobierna la simulación</h2>
+          </div>
+          <p class="section-note">
+            La coordenada x se mide desde el equilibrio estático. Por eso el peso
+            mg desplaza la posición de reposo, pero desaparece de la ecuación de
+            oscilación alrededor de ese equilibrio.
+          </p>
+        </div>
+
+        <div class="theory-grid">
+          <article class="theory-card">
+            <h3>Ecuación general</h3>
+            <p class="formula">m x″ + b x′ + kx = F<sub>0</sub> cos(ωt)</p>
+            <p>
+              m es la masa, b el coeficiente de amortiguamiento, k la constante
+              del resorte y F<sub>0</sub> la amplitud de la fuerza externa.
+            </p>
+          </article>
+          <article class="theory-card">
+            <h3>Sin amortiguamiento</h3>
+            <p class="formula">x(t) = A cos(ω<sub>0</sub>t + φ)</p>
+            <p>
+              La frecuencia angular natural es ω<sub>0</sub> = √(k/m). La energía
+              mecánica se conserva si no hay rozamiento.
+            </p>
+          </article>
+          <article class="theory-card">
+            <h3>Medio viscoso</h3>
+            <p class="formula">ζ = b / (2√km)</p>
+            <p>
+              Si ζ &lt; 1 el sistema oscila con amplitud decreciente; si ζ = 1
+              vuelve al equilibrio lo más rápido posible sin oscilar.
+            </p>
+          </article>
+          <article class="theory-card">
+            <h3>Forzamiento</h3>
+            <p class="formula">A(ω) = F<sub>0</sub> / √[(k − mω²)² + (bω)²]</p>
+            <p>
+              La respuesta estacionaria aumenta cerca de la frecuencia natural.
+              El amortiguamiento evita que la amplitud crezca sin límite.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section id="docente" class="section teacher-section" aria-labelledby="teacher-title">
+        <div class="section-heading compact">
+          <div>
+            <p class="eyebrow">Uso didáctico</p>
+            <h2 id="teacher-title">Cómo presentarlo ante estudiantes y jurados</h2>
+          </div>
+          <p class="section-note">
+            La intención no es reemplazar el laboratorio real, sino llegar a él con
+            hipótesis, lenguaje físico y expectativas cuantitativas claras.
+          </p>
+        </div>
+
+        <div class="teacher-grid">
+          <article>
+            <h3>Antes de la práctica</h3>
+            <p>
+              El estudiante predice periodo, elongación estática, efecto del medio
+              y frecuencia de resonancia. El simulador permite equivocarse rápido y
+              corregir con evidencia visual.
+            </p>
+          </article>
+          <article>
+            <h3>Durante el laboratorio</h3>
+            <p>
+              Sirve como referencia para discutir qué medir, cómo leer una gráfica
+              y por qué la posición de equilibrio cambia cuando se reemplaza la masa
+              o el resorte.
+            </p>
+          </article>
+          <article>
+            <h3>Después de la práctica</h3>
+            <p>
+              Los datos reales pueden compararse con el modelo ideal. Las diferencias
+              abren la conversación sobre fricción, incertidumbre, linealidad y montaje.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section id="publicar" class="section publish-section" aria-labelledby="publish-title">
+        <div class="section-heading compact">
+          <div>
+            <p class="eyebrow">Publicación gratuita</p>
+            <h2 id="publish-title">Listo para GitHub Pages</h2>
+          </div>
+          <p class="section-note">
+            Este proyecto no necesita backend ni dominio pago. Puede publicarse desde
+            la rama principal del repositorio usando GitHub Pages.
+          </p>
+        </div>
+        <div class="publish-card">
+          <h3>Nombre recomendado del repositorio</h3>
+          <p><strong>movimiento-oscilatorio</strong></p>
+          <p>
+            URL esperada después de publicar:
+            <code>https://fisicaybiofisica.github.io/movimiento-oscilatorio/</code>
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>
+        Recurso educativo abierto para física universitaria. Diseñado para apoyar
+        prácticas de laboratorio sobre movimiento oscilatorio.
+      </p>
+    </footer>
+  </body>
+</html>
