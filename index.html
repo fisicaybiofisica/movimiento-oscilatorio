@@ -96,30 +96,51 @@
             <canvas id="simulationCanvas" class="simulation-canvas" width="960" height="760">
               Tu navegador no permite mostrar el simulador en canvas.
             </canvas>
+            <p class="canvas-note" id="equilibriumNote">
+              La gravedad desplaza el equilibrio estático pero no altera el periodo.
+              La ecuación de oscilación se escribe alrededor de x = 0 (equilibrio),
+              por lo que mg no aparece en ella.
+            </p>
+            <p class="tank-warning" id="tankWarning" hidden role="alert">
+              La amplitud inicial se limitó al máximo seguro para que la masa no
+              salga del líquido con los parámetros actuales.
+            </p>
             <div class="readout-grid" aria-label="Lecturas de la simulación">
               <article>
-                <span>Tiempo</span>
+                <span>t · tiempo</span>
                 <strong id="timeReadout">0.00 s</strong>
               </article>
               <article>
-                <span>Desplazamiento</span>
+                <span>x · desplazamiento</span>
                 <strong id="xReadout">12.0 cm</strong>
               </article>
               <article>
-                <span>Velocidad</span>
+                <span>ẋ · velocidad</span>
                 <strong id="vReadout">0.0 cm/s</strong>
               </article>
               <article>
-                <span>Periodo natural</span>
-                <strong id="periodReadout">0.63 s</strong>
+                <span>ω₀ · frec. angular natural</span>
+                <strong id="omegaReadout">8.49 rad/s</strong>
               </article>
               <article>
-                <span>Razón ζ</span>
+                <span>f₀ · frecuencia natural</span>
+                <strong id="freqReadout">1.35 Hz</strong>
+              </article>
+              <article>
+                <span>T · periodo natural</span>
+                <strong id="periodReadout">0.74 s</strong>
+              </article>
+              <article>
+                <span>ζ · razón de amortiguamiento</span>
                 <strong id="zetaReadout">0.00</strong>
               </article>
               <article>
-                <span>Energía total</span>
+                <span>E · energía total</span>
                 <strong id="energyReadout">0.058 J</strong>
+              </article>
+              <article class="mode-only" data-visible-mode="damped,forced">
+                <span>H · altura del líquido</span>
+                <strong id="liquidHeightReadout">— cm</strong>
               </article>
             </div>
           </section>
@@ -145,28 +166,28 @@
               </label>
             </div>
 
-            <div class="control-group">
-              <h3>Parámetros del montaje</h3>
+            <details class="control-group" open>
+              <summary><h3>Parámetros del montaje</h3></summary>
               <label class="range-row" for="massInput">
-                <span>Masa <output id="massValue">250 g</output></span>
+                <span>m · masa <output id="massValue">0.250 kg</output></span>
                 <input id="massInput" type="range" min="50" max="1200" step="10" value="250">
               </label>
               <label class="range-row" for="springInput">
-                <span>Constante del resorte <output id="springValue">18 N/m</output></span>
+                <span>k · constante del resorte <output id="springValue">18 N/m</output></span>
                 <input id="springInput" type="range" min="4" max="90" step="1" value="18">
               </label>
               <label class="range-row" for="amplitudeInput">
-                <span>Amplitud inicial <output id="amplitudeValue">12 cm</output></span>
+                <span>A₀ · amplitud inicial <output id="amplitudeValue">12 cm</output></span>
                 <input id="amplitudeInput" type="range" min="2" max="28" step="1" value="12">
               </label>
               <label class="range-row" for="gravityInput">
-                <span>Gravedad <output id="gravityValue">9.8 m/s²</output></span>
+                <span>g · gravedad <output id="gravityValue">9.8 m/s²</output></span>
                 <input id="gravityInput" type="range" min="0" max="24" step="0.1" value="9.8">
               </label>
-            </div>
+            </details>
 
-            <div class="control-group mode-only" data-visible-mode="damped,forced">
-              <h3>Medio viscoso</h3>
+            <details class="control-group mode-only" data-visible-mode="damped,forced" open>
+              <summary><h3>Medio viscoso</h3></summary>
               <label class="select-wrap wide" for="mediumSelect">
                 <span>Medio</span>
                 <select id="mediumSelect">
@@ -178,46 +199,50 @@
                 </select>
               </label>
               <label class="range-row" for="dampingInput">
-                <span>Coeficiente b <output id="dampingValue">0.10 N·s/m</output></span>
+                <span>b · coef. de amortiguamiento <output id="dampingValue">0.10 N·s/m</output></span>
                 <input id="dampingInput" type="range" min="0" max="1.8" step="0.01" value="0.10">
               </label>
-            </div>
+            </details>
 
-            <div class="control-group mode-only" data-visible-mode="forced">
-              <h3>Motor de excitación</h3>
+            <details class="control-group mode-only" data-visible-mode="forced" open>
+              <summary><h3>Motor de excitación</h3></summary>
               <label class="range-row" for="forceInput">
-                <span>Fuerza del motor <output id="forceValue">0.55 N</output></span>
+                <span>F₀ · amplitud de la fuerza <output id="forceValue">0.55 N</output></span>
                 <input id="forceInput" type="range" min="0" max="2.2" step="0.05" value="0.55">
               </label>
               <label class="range-row" for="driveInput">
-                <span>Frecuencia del motor <output id="driveValue">1.00 Hz</output></span>
+                <span>f · frecuencia del motor <output id="driveValue">1.00 Hz</output></span>
                 <input id="driveInput" type="range" min="0.1" max="4.0" step="0.01" value="1.00">
               </label>
               <button class="text-button" type="button" id="resonanceButton">
                 <i data-lucide="target" aria-hidden="true"></i>
                 Ajustar cerca de resonancia
               </button>
-            </div>
+            </details>
 
-            <div class="control-group">
-              <h3>Capas visuales</h3>
+            <details class="control-group" open>
+              <summary><h3>Capas visuales</h3></summary>
+              <label class="check-row">
+                <input id="showForces" type="checkbox" checked>
+                <span>Diagrama de cuerpo libre (DCL)</span>
+              </label>
               <label class="check-row">
                 <input id="showVelocity" type="checkbox" checked>
-                <span>Vector velocidad</span>
+                <span>Vector velocidad ẋ</span>
               </label>
               <label class="check-row">
                 <input id="showAcceleration" type="checkbox" checked>
-                <span>Vector aceleración</span>
+                <span>Vector aceleración ẍ</span>
               </label>
               <label class="check-row">
                 <input id="showEquilibrium" type="checkbox" checked>
-                <span>Línea de equilibrio</span>
+                <span>Línea de equilibrio x = 0</span>
               </label>
               <label class="check-row">
                 <input id="showTrace" type="checkbox" checked>
                 <span>Rastro temporal de la masa</span>
               </label>
-            </div>
+            </details>
 
             <article class="insight-card" id="insightCard">
               <span class="eyebrow">Lectura física</span>
@@ -233,22 +258,22 @@
             <div class="panel-title graph-title">
               <div>
                 <p class="eyebrow">Datos en tiempo real</p>
-                <h2>Amplitud respecto al equilibrio</h2>
+                <h2 id="graphHeading">x(t) · desplazamiento contra el tiempo</h2>
               </div>
               <div class="segmented" role="tablist" aria-label="Tipo de gráfica">
                 <button type="button" class="segment is-active" data-graph="time">x(t)</button>
-                <button type="button" class="segment" data-graph="phase">Fase</button>
+                <button type="button" class="segment" data-graph="phase">ẋ vs x</button>
                 <button type="button" class="segment" data-graph="energy">Energía</button>
+                <button type="button" class="segment mode-only" data-visible-mode="forced" data-graph="response">A(f)</button>
               </div>
             </div>
             <canvas id="graphCanvas" class="graph-canvas" width="1200" height="520">
               Tu navegador no permite mostrar la gráfica.
             </canvas>
             <div class="graph-footer">
-              <div class="legend">
-                <span><i class="line line-x"></i> Desplazamiento</span>
-                <span><i class="line line-v"></i> Velocidad</span>
-                <span><i class="line line-e"></i> Energía total</span>
+              <div class="legend" id="graphLegend">
+                <span><i class="line line-x"></i> x · desplazamiento [cm]</span>
+                <span><i class="line line-env"></i> Envolvente A·e<sup>−ζω₀t</sup></span>
               </div>
               <button class="text-button" type="button" id="exportButton">
                 <i data-lucide="download" aria-hidden="true"></i>

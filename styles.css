@@ -329,11 +329,24 @@ h3 {
 
 .sim-grid {
   display: grid;
-  grid-template-columns: minmax(360px, 1.25fr) minmax(320px, 0.72fr);
+  grid-template-columns: minmax(360px, 1.32fr) minmax(320px, 0.72fr);
   grid-template-areas:
     "stage controls"
     "graph controls";
   gap: 16px;
+}
+
+@media (min-width: 1024px) {
+  .sim-grid {
+    grid-template-columns: minmax(360px, 1.1fr) minmax(380px, 0.95fr) minmax(280px, 0.72fr);
+    grid-template-areas:
+      "stage graph controls";
+  }
+
+  .stage-panel,
+  .graph-panel {
+    align-self: stretch;
+  }
 }
 
 .panel {
@@ -408,7 +421,7 @@ h3 {
 
 .readout-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 8px;
   margin-top: 12px;
 }
@@ -424,14 +437,45 @@ h3 {
 .readout-grid span {
   display: block;
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: 0.74rem;
   font-weight: 750;
 }
 
 .readout-grid strong {
   display: block;
   overflow-wrap: anywhere;
-  font-size: 0.98rem;
+  font-size: 0.96rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.readout-grid article.mode-only[hidden] {
+  display: none;
+}
+
+.canvas-note {
+  margin: 10px 0 0;
+  border-left: 3px solid var(--accent);
+  background: #eff6ff;
+  color: #1e3a8a;
+  font-size: 0.84rem;
+  font-weight: 600;
+  padding: 8px 12px;
+  line-height: 1.45;
+}
+
+.tank-warning {
+  margin: 8px 0 0;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius);
+  background: #fef2f2;
+  color: #991b1b;
+  font-size: 0.84rem;
+  font-weight: 700;
+  padding: 8px 12px;
+}
+
+.tank-warning[hidden] {
+  display: none;
 }
 
 .playbar {
@@ -463,7 +507,40 @@ h3 {
 }
 
 .control-group h3 {
+  display: inline;
+  margin: 0;
+}
+
+details.control-group > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   margin-bottom: 14px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+details.control-group > summary::-webkit-details-marker {
+  display: none;
+}
+
+details.control-group > summary::after {
+  content: "⌃";
+  display: inline-block;
+  color: var(--muted);
+  font-size: 0.95rem;
+  transform: rotate(180deg);
+  transition: transform 180ms ease;
+}
+
+details.control-group:not([open]) > summary::after {
+  transform: rotate(0deg);
+}
+
+details.control-group:not([open]) > summary {
+  margin-bottom: 0;
 }
 
 .range-row {
@@ -590,15 +667,43 @@ select {
 }
 
 .line-x {
-  background: var(--accent);
+  background: #168965;
 }
 
 .line-v {
-  background: var(--blue);
+  background: #2563eb;
 }
 
-.line-e {
-  background: var(--orange);
+.line-a {
+  background: #c84646;
+}
+
+.line-ec {
+  background: #2563eb;
+}
+
+.line-ep {
+  background: #168965;
+}
+
+.line-et {
+  background: #d97706;
+}
+
+.line-env {
+  background: repeating-linear-gradient(
+    90deg,
+    #d97706 0 8px,
+    transparent 8px 14px
+  );
+}
+
+.line-response {
+  background: #2563eb;
+}
+
+.line-peak {
+  background: #dc2626;
 }
 
 .guided-section,
@@ -815,30 +920,13 @@ select {
   margin-bottom: 8px;
 }
 
-@media (max-width: 1180px) {
+/* Tablet: simulator on top, graph below, controls aside (768–1023px) */
+@media (max-width: 1023px) {
   .sim-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(320px, 1.4fr) minmax(280px, 0.9fr);
     grid-template-areas:
-      "stage"
-      "controls"
-      "graph";
-  }
-
-  .controls-panel {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
-  }
-
-  .playbar,
-  .insight-card {
-    grid-column: 1 / -1;
-  }
-
-  .control-group {
-    border-top: 0;
-    border-left: 1px solid var(--line);
-    padding: 0 0 0 16px;
+      "stage controls"
+      "graph controls";
   }
 
   .theory-grid {
@@ -851,7 +939,8 @@ select {
   }
 }
 
-@media (max-width: 860px) {
+/* Mobile: everything in a single column, collapsible controls (≤767px) */
+@media (max-width: 767px) {
   .topbar,
   .section-heading,
   .panel-title,
@@ -879,8 +968,12 @@ select {
     font-size: 2.35rem;
   }
 
-  .readout-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .sim-grid {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "stage"
+      "controls"
+      "graph";
   }
 
   .controls-panel,
@@ -890,18 +983,22 @@ select {
     grid-template-columns: 1fr;
   }
 
-  .control-group {
-    border-left: 0;
-    border-top: 1px solid var(--line);
-    padding: 16px 0 0;
+  details.control-group:not([open]) {
+    padding-bottom: 8px;
   }
 
   .simulation-canvas {
-    min-height: 360px;
+    aspect-ratio: 1 / 1.05;
+    min-height: 340px;
+  }
+
+  .graph-canvas {
+    aspect-ratio: 1.8 / 1;
+    min-height: 240px;
   }
 }
 
-@media (max-width: 560px) {
+@media (max-width: 480px) {
   .section {
     width: min(100% - 20px, 1480px);
     padding: 36px 0;
@@ -922,11 +1019,12 @@ select {
   .theory-card,
   .teacher-grid article,
   .publish-card {
-    padding: 14px;
+    padding: 12px;
   }
 
   .mode-tab {
     white-space: normal;
+    padding: 8px 10px;
   }
 
   .playbar {
@@ -939,6 +1037,10 @@ select {
   }
 
   h1 {
-    font-size: 2.05rem;
+    font-size: 1.9rem;
+  }
+
+  .readout-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
