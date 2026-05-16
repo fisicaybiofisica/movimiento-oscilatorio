@@ -10,6 +10,12 @@ Portal web educativo para simular prácticas universitarias de movimiento oscila
 
 El sitio está hecho con HTML, CSS y JavaScript puro. No necesita servidor, compilador ni dominio pago.
 
+## Autor
+
+Diego Alejandro Ortiz Mejía  
+Doctor en Ciencias–Física | Magíster en Ciencias–Física | Ingeniero Físico  
+Contacto para estudiantes: <daortizm@gmail.com>
+
 ## Probar localmente
 
 Abre `index.html` en el navegador.

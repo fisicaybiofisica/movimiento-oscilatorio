@@ -97,6 +97,8 @@ const els = {
 
 const simCtx = els.simulationCanvas.getContext("2d");
 const graphCtx = els.graphCanvas.getContext("2d");
+const resonanceCanvas = document.querySelector("#resonanceCanvas");
+const resonanceCtx = resonanceCanvas ? resonanceCanvas.getContext("2d") : null;
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
@@ -246,26 +248,28 @@ function updateInsight() {
   const staticStretch = (state.mass * state.gravity) / state.k;
   let title = "La gravedad cambia el punto de equilibrio, no el periodo.";
   let body =
-    `Con estos valores, T = ${fmt(naturalPeriod(), 2)} s y la elongación estática ` +
-    `mg/k es ${fmt(staticStretch * 100, 1)} cm.`;
+    `Con estos valores, \\(T = ${fmt(naturalPeriod(), 2)}\\,\\text{s}\\) y la elongación estática ` +
+    `\\(mg/k\\) es ${fmt(staticStretch * 100, 1)} cm.`;
 
   if (state.mode === "damped") {
     title = "El medio convierte energía mecánica en calor.";
     body =
-      `${mediumCatalog[state.medium].note} La razón de amortiguamiento es ζ = ` +
-      `${fmt(zeta, 2)}; observa cómo cae la envolvente de x(t).`;
+      `${mediumCatalog[state.medium].note} La razón de amortiguamiento es ` +
+      `\\(\\zeta = ${fmt(zeta, 2)}\\); observa cómo cae la envolvente de \\(x(t)\\).`;
   }
 
   if (state.mode === "forced") {
     const ratio = state.driveFrequency / f0;
     title = "La respuesta máxima aparece cerca de la frecuencia natural.";
     body =
-      `El motor está en ${fmt(state.driveFrequency, 2)} Hz y f₀ = ${fmt(f0, 2)} Hz ` +
+      `El motor está en ${fmt(state.driveFrequency, 2)} Hz y \\(f_0 = ${fmt(f0, 2)}\\,\\text{Hz}\\) ` +
       `(cociente ${fmt(ratio, 2)}). Cerca de 1 aparece la resonancia.`;
   }
 
   els.insightCard.querySelector("h3").textContent = title;
-  els.insightCard.querySelector("p").textContent = body;
+  const insightBody = els.insightCard.querySelector("p");
+  insightBody.innerHTML = body;
+  renderMath(els.insightCard);
 }
 
 function sampleHistory(force = false) {
@@ -925,6 +929,110 @@ function labelGraph(ctx, w, h, title, subtitle) {
   ctx.restore();
 }
 
+function drawResonanceStatic() {
+  if (!resonanceCanvas || !resonanceCtx) return;
+  const { width: w, height: h } = fitCanvas(resonanceCanvas, resonanceCtx);
+  const ctx = resonanceCtx;
+  const left = 58;
+  const right = w - 24;
+  const top = 24;
+  const bottom = h - 48;
+  const zetas = [
+    { value: 0.1, color: "#2563eb" },
+    { value: 0.3, color: "#16a34a" },
+    { value: 0.7, color: "#f59e0b" },
+    { value: 1.0, color: "#dc2626" }
+  ];
+  const samples = 260;
+  const curves = zetas.map((zeta) => {
+    const points = [];
+    for (let i = 0; i <= samples; i += 1) {
+      const ratio = 0.05 + (2.8 * i) / samples;
+      const amplitude = 1 / Math.sqrt((1 - ratio * ratio) ** 2 + (2 * zeta * ratio) ** 2);
+      points.push({ ratio, amplitude: Math.min(amplitude, 5.5) });
+    }
+    return { ...zeta, points };
+  });
+  const yMax = 5.5;
+
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = "#f8fafc";
+  ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = "rgba(148, 163, 184, 0.45)";
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 7; i += 1) {
+    const x = left + ((right - left) * i) / 7;
+    ctx.beginPath();
+    ctx.moveTo(x, top);
+    ctx.lineTo(x, bottom);
+    ctx.stroke();
+  }
+  for (let i = 0; i <= 5; i += 1) {
+    const y = top + ((bottom - top) * i) / 5;
+    ctx.beginPath();
+    ctx.moveTo(left, y);
+    ctx.lineTo(right, y);
+    ctx.stroke();
+  }
+
+  ctx.strokeStyle = "#1f2937";
+  ctx.lineWidth = 1.8;
+  ctx.beginPath();
+  ctx.moveTo(left, top);
+  ctx.lineTo(left, bottom);
+  ctx.lineTo(right, bottom);
+  ctx.stroke();
+
+  ctx.setLineDash([8, 6]);
+  ctx.strokeStyle = "rgba(37, 99, 235, 0.55)";
+  const resonanceX = left + ((1 - 0.05) / 2.8) * (right - left);
+  ctx.beginPath();
+  ctx.moveTo(resonanceX, top);
+  ctx.lineTo(resonanceX, bottom);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  curves.forEach((curve) => {
+    ctx.strokeStyle = curve.color;
+    ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    curve.points.forEach((point, index) => {
+      const x = left + ((point.ratio - 0.05) / 2.8) * (right - left);
+      const y = bottom - (point.amplitude / yMax) * (bottom - top);
+      if (index === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+  });
+
+  ctx.fillStyle = "#0f172a";
+  ctx.font = "800 13px system-ui, sans-serif";
+  ctx.textAlign = "left";
+  ctx.fillText("Amplitud normalizada", left, 18);
+  ctx.textAlign = "center";
+  ctx.fillText("ω / ω₀", (left + right) / 2, h - 13);
+  ctx.save();
+  ctx.translate(16, (top + bottom) / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText("A(ω)", 0, 0);
+  ctx.restore();
+
+  ctx.textAlign = "left";
+  ctx.font = "700 12px system-ui, sans-serif";
+  zetas.forEach((zeta, index) => {
+    const x = right - 132;
+    const y = top + 18 + index * 22;
+    ctx.strokeStyle = zeta.color;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(x, y - 4);
+    ctx.lineTo(x + 26, y - 4);
+    ctx.stroke();
+    ctx.fillStyle = "#0f172a";
+    ctx.fillText(`ζ = ${zeta.value.toFixed(1)}`, x + 34, y);
+  });
+}
+
 function exportCsv() {
   const rows = [
     ["t_s", "x_m", "v_m_s", "a_m_s2", "energia_cinetica_J", "energia_potencial_J", "energia_total_J"],
@@ -1045,15 +1153,33 @@ function bindEvents() {
     input.addEventListener("change", () => syncStateFromInputs(false));
   });
 
-  window.addEventListener("resize", draw);
+  window.addEventListener("resize", () => {
+    draw();
+    drawResonanceStatic();
+  });
+}
+
+function renderMath(root = document.body) {
+  if (!window.renderMathInElement) return;
+  window.renderMathInElement(root, {
+    delimiters: [
+      { left: "$$", right: "$$", display: true },
+      { left: "\\[", right: "\\]", display: true },
+      { left: "\\(", right: "\\)", display: false },
+      { left: "$", right: "$", display: false }
+    ],
+    throwOnError: false
+  });
 }
 
 function init() {
   bindEvents();
   if (window.lucide) window.lucide.createIcons();
+  renderMath();
   resetSimulation(true);
   setMode("free");
   setGraphMode("time");
+  drawResonanceStatic();
   requestAnimationFrame(animationLoop);
 }
 

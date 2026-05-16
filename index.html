@@ -8,7 +8,22 @@
       content="Simulador universitario de movimiento oscilatorio: masa-resorte vertical sin amortiguamiento, con medio viscoso y oscilación forzada."
     >
     <title>Movimiento oscilatorio | Sistema masa-resorte vertical</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+      crossorigin="anonymous"
+    >
     <link rel="stylesheet" href="styles.css">
+    <script
+      src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
+      crossorigin="anonymous"
+      defer
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+      crossorigin="anonymous"
+      defer
+    ></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
     <script src="app.js" defer></script>
   </head>
@@ -21,6 +36,11 @@
           <small>Sistema masa-resorte vertical</small>
         </span>
       </a>
+      <div class="author-chip" aria-label="Autor del recurso">
+        <span>Autor</span>
+        <strong>Diego Alejandro Ortiz Mejía</strong>
+        <small>Doctor en Ciencias–Física | Magíster en Ciencias–Física | Ingeniero Físico</small>
+      </div>
       <nav class="site-nav" aria-label="Navegación principal">
         <a href="#simulador">Simulador</a>
         <a href="#laboratorio">Laboratorio guiado</a>
@@ -40,6 +60,13 @@
               Explora el movimiento armónico simple, el amortiguamiento viscoso y la
               resonancia forzada con un montaje pensado para estudiantes universitarios.
             </p>
+            <div class="hero-author">
+              <p>
+                <strong>Diego Alejandro Ortiz Mejía</strong>
+                <span>Doctor en Ciencias–Física | Magíster en Ciencias–Física | Ingeniero Físico</span>
+              </p>
+              <a href="mailto:daortizm@gmail.com">¿Tienes dudas? Escríbenos</a>
+            </div>
           </div>
           <div class="mode-tabs" role="tablist" aria-label="Escenario de simulación">
             <button class="mode-tab is-active" type="button" data-mode="free" role="tab" aria-selected="true">
@@ -317,37 +344,158 @@
         <div class="theory-grid">
           <article class="theory-card">
             <h3>Ecuación general</h3>
-            <p class="formula">m x″ + b x′ + kx = F<sub>0</sub> cos(ωt)</p>
+            <div class="formula">$$m\ddot{x} + b\dot{x} + kx = F_0\cos(\omega t)$$</div>
             <p>
-              m es la masa, b el coeficiente de amortiguamiento, k la constante
-              del resorte y F<sub>0</sub> la amplitud de la fuerza externa.
+              \(m\) es la masa, \(b\) el coeficiente de amortiguamiento,
+              \(k\) la constante del resorte y \(F_0\) la amplitud de la fuerza externa.
             </p>
           </article>
           <article class="theory-card">
             <h3>Sin amortiguamiento</h3>
-            <p class="formula">x(t) = A cos(ω<sub>0</sub>t + φ)</p>
+            <div class="formula">$$x(t) = A\cos(\omega_0 t + \varphi)$$</div>
             <p>
-              La frecuencia angular natural es ω<sub>0</sub> = √(k/m). La energía
-              mecánica se conserva si no hay rozamiento.
+              La frecuencia angular natural y el periodo son:
             </p>
+            <div class="formula compact-formula">$$\omega_0 = \sqrt{k/m}, \quad T = 2\pi\sqrt{m/k}$$</div>
           </article>
           <article class="theory-card">
             <h3>Medio viscoso</h3>
-            <p class="formula">ζ = b / (2√km)</p>
+            <div class="formula">$$\zeta = \dfrac{b}{2\sqrt{km}}$$</div>
             <p>
-              Si ζ &lt; 1 el sistema oscila con amplitud decreciente; si ζ = 1
+              Si \(\zeta < 1\) el sistema oscila con amplitud decreciente; si \(\zeta = 1\)
               vuelve al equilibrio lo más rápido posible sin oscilar.
             </p>
           </article>
           <article class="theory-card">
             <h3>Forzamiento</h3>
-            <p class="formula">A(ω) = F<sub>0</sub> / √[(k − mω²)² + (bω)²]</p>
+            <div class="formula">$$A(\omega) = \dfrac{F_0}{\sqrt{(k-m\omega^2)^2+(b\omega)^2}}$$</div>
             <p>
               La respuesta estacionaria aumenta cerca de la frecuencia natural.
               El amortiguamiento evita que la amplitud crezca sin límite.
             </p>
           </article>
         </div>
+
+        <div class="theory-deep-grid">
+          <article class="theory-card force-card">
+            <h3>Diagrama de fuerzas</h3>
+            <svg class="force-diagram" viewBox="0 0 620 420" role="img" aria-labelledby="force-title force-desc">
+              <title id="force-title">Diagrama de fuerzas para una masa en un resorte vertical</title>
+              <desc id="force-desc">
+                Masa unida a un resorte vertical con flechas para peso, fuerza elástica, fuerza viscosa y fuerza externa.
+              </desc>
+              <defs>
+                <marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb"></path>
+                </marker>
+                <marker id="arrow-red" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#dc2626"></path>
+                </marker>
+                <marker id="arrow-green" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#16a34a"></path>
+                </marker>
+                <marker id="arrow-amber" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#d97706"></path>
+                </marker>
+              </defs>
+              <rect x="60" y="28" width="210" height="24" rx="6" fill="#cbd5e1"></rect>
+              <path
+                d="M165 52 C120 70 210 88 165 106 C120 124 210 142 165 160 C120 178 210 196 165 214"
+                fill="none"
+                stroke="#1f2937"
+                stroke-width="7"
+                stroke-linecap="round"
+              ></path>
+              <rect x="116" y="214" width="98" height="82" rx="8" fill="#f59e0b" stroke="#78350f" stroke-width="3"></rect>
+              <text x="165" y="260" text-anchor="middle" class="svg-label dark">m</text>
+              <line x1="165" y1="214" x2="165" y2="118" class="arrow blue" marker-end="url(#arrow-blue)"></line>
+              <text x="178" y="150" class="svg-label">kx</text>
+              <line x1="165" y1="296" x2="165" y2="378" class="arrow red" marker-end="url(#arrow-red)"></line>
+              <text x="178" y="352" class="svg-label">mg</text>
+              <line x1="116" y1="255" x2="42" y2="255" class="arrow green" marker-end="url(#arrow-green)"></line>
+              <text x="34" y="236" class="svg-label">b x&#775;</text>
+              <line x1="214" y1="255" x2="312" y2="255" class="arrow amber" marker-end="url(#arrow-amber)"></line>
+              <text x="323" y="260" class="svg-label">F(t)</text>
+              <line x1="362" y1="70" x2="362" y2="356" stroke="#94a3b8" stroke-width="2" stroke-dasharray="8 8"></line>
+              <text x="384" y="84" class="svg-label muted">eje vertical</text>
+              <text x="384" y="330" class="svg-label muted">x medido desde equilibrio</text>
+            </svg>
+          </article>
+
+          <article class="theory-card derivation-card">
+            <h3>Deducción por Segunda Ley de Newton</h3>
+            <p>
+              Si \(y\) se mide desde la longitud natural del resorte, en el equilibrio
+              estático la masa queda en \(y_0\) y se cumple:
+            </p>
+            <div class="formula compact-formula">$$ky_0 = mg$$</div>
+            <p>
+              Durante el movimiento escribimos \(y = y_0 + x\), donde \(x\) es el
+              desplazamiento respecto al equilibrio. Tomando positivo hacia abajo:
+            </p>
+            <div class="formula compact-formula">$$m\ddot{x} = mg - k(y_0+x) - b\dot{x} + F_0\cos(\omega t)$$</div>
+            <p>
+              Al sustituir \(ky_0 = mg\), los términos gravitacionales se cancelan:
+              la gravedad fija la posición de equilibrio, pero no aparece en la
+              ecuación dinámica alrededor de ese punto.
+            </p>
+          </article>
+        </div>
+
+        <div class="analysis-grid">
+          <article class="theory-card">
+            <h3>Regímenes de amortiguamiento</h3>
+            <div class="table-wrap">
+              <table class="regime-table">
+                <thead>
+                  <tr>
+                    <th>Régimen</th>
+                    <th>Condición</th>
+                    <th>Comportamiento</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Subamortiguado</td>
+                    <td>\(\zeta < 1\)</td>
+                    <td>Oscila con amplitud decreciente</td>
+                  </tr>
+                  <tr>
+                    <td>Críticamente amortiguado</td>
+                    <td>\(\zeta = 1\)</td>
+                    <td>Retorno más rápido sin oscilar</td>
+                  </tr>
+                  <tr>
+                    <td>Sobreamortiguado</td>
+                    <td>\(\zeta > 1\)</td>
+                    <td>Retorno lento exponencial</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="theory-card resonance-card">
+            <h3>Curvas de resonancia \(A(\omega)\)</h3>
+            <canvas id="resonanceCanvas" class="resonance-canvas" width="920" height="480">
+              Tu navegador no permite mostrar la gráfica de resonancia.
+            </canvas>
+            <p>
+              La gráfica compara la respuesta estacionaria para
+              \(\zeta = 0.1, 0.3, 0.7, 1.0\). El pico se ensancha y disminuye al
+              aumentar la disipación.
+            </p>
+          </article>
+        </div>
+
+        <article class="references-card" aria-labelledby="references-title">
+          <h3 id="references-title">Referencias bibliográficas</h3>
+          <ul>
+            <li>Serway, R. &amp; Jewett, J. (2014). <em>Physics for Scientists and Engineers.</em></li>
+            <li>French, A. P. (1971). <em>Vibrations and Waves. MIT Introductory Physics.</em></li>
+            <li>Marion, J. B. (1970). <em>Classical Dynamics of Particles and Systems.</em></li>
+          </ul>
+        </article>
       </section>
 
       <section id="docente" class="section teacher-section" aria-labelledby="teacher-title">
@@ -412,8 +560,13 @@
     </main>
 
     <footer class="site-footer">
+      <div>
+        <strong>Diego Alejandro Ortiz Mejía</strong>
+        <p>Doctor en Ciencias–Física | Magíster en Ciencias–Física | Ingeniero Físico</p>
+        <a href="mailto:daortizm@gmail.com">¿Tienes dudas? Escríbenos</a>
+      </div>
       <p>
-        Recurso educativo abierto para física universitaria. Diseñado para apoyar
+        2025 · Recurso Educativo Abierto – Física Universitaria. Diseñado para apoyar
         prácticas de laboratorio sobre movimiento oscilatorio.
       </p>
     </footer>
