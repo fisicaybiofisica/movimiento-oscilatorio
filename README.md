@@ -53,7 +53,7 @@ https://fisicaybiofisica.github.io/movimiento-oscilatorio/
 La coordenada se mide desde el equilibrio estático:
 
 ```text
-m x'' + b x' + kx = F0 cos(wt)
+m y'' + b y' + ky = F0 cos(wt)
 ```
 
 Esto permite mostrar que la gravedad desplaza el equilibrio, pero no cambia el periodo natural para oscilaciones pequeñas.

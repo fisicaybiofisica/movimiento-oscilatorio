@@ -708,21 +708,18 @@ select {
 
 .guided-section,
 .theory-section,
-.teacher-section,
 .publish-section {
   padding-top: 34px;
 }
 
 .guided-section,
 .theory-section,
-.teacher-section,
 .publish-section {
   color: var(--ink);
 }
 
 .lab-grid,
-.theory-grid,
-.teacher-grid {
+.theory-grid {
   display: grid;
   gap: 16px;
 }
@@ -743,20 +740,15 @@ select {
 }
 
 .theory-deep-grid {
-  grid-template-columns: minmax(300px, 0.9fr) minmax(320px, 1.1fr);
+  grid-template-columns: 1fr;
 }
 
 .analysis-grid {
   grid-template-columns: minmax(320px, 0.86fr) minmax(360px, 1.14fr);
 }
 
-.teacher-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
 .lab-card,
 .theory-card,
-.teacher-grid article,
 .publish-card,
 .references-card {
   border: 1px solid var(--line);
@@ -781,7 +773,6 @@ select {
 .lab-card p,
 .lab-card li,
 .theory-card p,
-.teacher-grid p,
 .publish-card p {
   color: var(--muted);
 }
@@ -801,51 +792,6 @@ select {
 
 .compact-formula {
   font-size: 0.98rem;
-}
-
-.force-diagram {
-  display: block;
-  width: 100%;
-  min-height: 280px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: #f8fafc;
-}
-
-.arrow {
-  stroke-width: 5;
-  stroke-linecap: round;
-}
-
-.arrow.blue {
-  stroke: #2563eb;
-}
-
-.arrow.red {
-  stroke: #dc2626;
-}
-
-.arrow.green {
-  stroke: #16a34a;
-}
-
-.arrow.amber {
-  stroke: #d97706;
-}
-
-.svg-label {
-  fill: #0f172a;
-  font: 800 20px system-ui, sans-serif;
-}
-
-.svg-label.dark {
-  fill: #111827;
-  font-size: 24px;
-}
-
-.svg-label.muted {
-  fill: #64748b;
-  font-size: 15px;
 }
 
 .table-wrap {
@@ -978,8 +924,7 @@ select {
 
   .controls-panel,
   .lab-grid,
-  .theory-grid,
-  .teacher-grid {
+  .theory-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1017,7 +962,6 @@ select {
   .graph-panel,
   .lab-card,
   .theory-card,
-  .teacher-grid article,
   .publish-card {
     padding: 12px;
   }

@@ -1,12 +1,12 @@
 /* Simulador de movimiento oscilatorio masa-resorte vertical.
    Toda la física se integra internamente en unidades SI:
-     m [kg], k [N/m], b [N·s/m], x [m], v [m/s], t [s].
+     m [kg], k [N/m], b [N·s/m], y [m], v [m/s], t [s].
    Los controles permiten introducir valores en cm o g; la conversión
    ocurre en syncStateFromInputs antes de pasar al integrador.
 
    Ecuación dinámica integrada (RK4):
-       m·ẍ + b·ẋ + k·x = F0·cos(ω·t)
-   La coordenada x se mide desde el equilibrio estático: la gravedad
+       m·ÿ + b·ẏ + k·y = F0·cos(ω·t)
+   La coordenada y se mide desde el equilibrio estático: la gravedad
    desplaza el equilibrio pero no aparece en esta ecuación.
 */
 
@@ -66,7 +66,6 @@ const state = {
   force: 0.55,        // N (F0)
   driveFrequency: 1.0, // Hz
   speed: 1,
-  showForces: true,
   showVelocity: true,
   showAcceleration: true,
   showEquilibrium: true,
@@ -95,7 +94,6 @@ const els = {
   driveInput: document.querySelector("#driveInput"),
   resonanceButton: document.querySelector("#resonanceButton"),
   exportButton: document.querySelector("#exportButton"),
-  showForces: document.querySelector("#showForces"),
   showVelocity: document.querySelector("#showVelocity"),
   showAcceleration: document.querySelector("#showAcceleration"),
   showEquilibrium: document.querySelector("#showEquilibrium"),
@@ -209,21 +207,6 @@ function accelerationAt(x = state.x, v = state.v, t = state.t) {
   return (drivingForce - activeDamping() * v - state.k * x) / state.mass;
 }
 
-function springForceUp() {
-  // Definimos x positivo hacia abajo. La fuerza elástica neta sobre la masa
-  // alrededor del equilibrio es F_k = -k·x  (positivo hacia arriba si x>0).
-  return -state.k * state.x;
-}
-
-function dampingForceVertical() {
-  return -activeDamping() * state.v;
-}
-
-function externalForceVertical() {
-  if (state.mode !== "forced") return 0;
-  return state.force * Math.cos(driveOmega() * state.t);
-}
-
 function energy() {
   const kinetic = 0.5 * state.mass * state.v * state.v;
   const potential = 0.5 * state.k * state.x * state.x;
@@ -334,7 +317,7 @@ function setMode(mode) {
   } else {
     applyMediumPreset();
   }
-  // Cambiar a un modo donde "response" no existe vuelve a la gráfica x(t).
+  // Cambiar a un modo donde "response" no existe vuelve a la gráfica y(t).
   if (state.graphMode === "response" && mode !== "forced") {
     setGraphMode("time");
   } else {
@@ -359,8 +342,8 @@ function setGraphMode(mode) {
 function updateGraphHeading() {
   if (!els.graphHeading) return;
   const titles = {
-    time: "x(t) · desplazamiento contra el tiempo",
-    phase: "Diagrama de fase: ẋ vs x",
+    time: "y(t) · desplazamiento vertical contra el tiempo",
+    phase: "Diagrama de fase: ẏ vs y",
     energy: "Energías Ec, Ep y E_total contra el tiempo",
     response: "A(f) · curva de respuesta en frecuencia"
   };
@@ -372,16 +355,16 @@ function updateGraphLegend() {
   const showEnvelope = state.mode === "damped" || state.mode === "forced";
   const entries = {
     time: [
-      ["line-x", "x · desplazamiento [cm]"],
+      ["line-x", "y · desplazamiento vertical [cm]"],
       showEnvelope ? ["line-env", "Envolvente A·e^(−ζω₀t) [cm]"] : null
     ],
     phase: [
-      ["line-v", "ẋ · velocidad [cm/s]"],
-      ["line-x", "x · desplazamiento [cm]"]
+      ["line-v", "ẏ · velocidad vertical [cm/s]"],
+      ["line-x", "y · desplazamiento vertical [cm]"]
     ],
     energy: [
-      ["line-ec", "Ec = ½mẋ² [J]"],
-      ["line-ep", "Ep = ½kx² [J]"],
+      ["line-ec", "Ec = ½mẏ² [J]"],
+      ["line-ep", "Ep = ½ky² [J]"],
       ["line-et", "E_total [J]"]
     ],
     response: [
@@ -439,7 +422,7 @@ function updateInsight() {
     title = "El medio convierte energía mecánica en calor.";
     body =
       `${mediumCatalog[state.medium].note} La razón de amortiguamiento es ` +
-      `\\(\\zeta = ${fmt(zeta, 3)}\\); observa cómo cae la envolvente de \\(x(t)\\).`;
+      `\\(\\zeta = ${fmt(zeta, 3)}\\); observa cómo cae la envolvente de \\(y(t)\\).`;
   }
 
   if (state.mode === "forced") {
@@ -602,7 +585,7 @@ function drawSimulation() {
 
   // Líneas de referencia
   if (state.showEquilibrium) {
-    drawReferenceLine(ctx, 26, w - 28, equilibriumY, "x = 0 · equilibrio estático", "#16a34a", [8, 8]);
+    drawReferenceLine(ctx, 26, w - 28, equilibriumY, "y = 0 · equilibrio estático", "#16a34a", [8, 8]);
     drawReferenceLine(ctx, 26, w - 28, naturalY, "Longitud natural del resorte", "#2563eb", [10, 6]);
   }
 
@@ -618,11 +601,6 @@ function drawSimulation() {
 
   // Masa
   drawMass(ctx, cx, massY, massW, massH);
-
-  // Diagrama de cuerpo libre (DCL) en tiempo real
-  if (state.showForces) {
-    drawFreeBodyDiagram(ctx, cx, massY, massW, massH);
-  }
 
   // Vectores velocidad y aceleración
   drawKinematicVectors(ctx, cx, massY, massW);
@@ -881,126 +859,11 @@ function drawTrace(ctx) {
   ctx.restore();
 }
 
-/* ---------- Diagrama de cuerpo libre (DCL) ---------- */
-
-function drawForceArrow(ctx, fromX, fromY, dy, color, symbol, valueText) {
-  const minLen = 6;
-  let len = dy;
-  if (Math.abs(len) < minLen) {
-    // Mostrar un guion para indicar fuerza casi cero (sin flecha).
-    ctx.save();
-    ctx.fillStyle = color;
-    ctx.font = "700 11px system-ui, sans-serif";
-    ctx.textAlign = "left";
-    ctx.fillText(`${symbol} ≈ 0`, fromX + 6, fromY);
-    ctx.restore();
-    return;
-  }
-  const endY = fromY + len;
-  ctx.save();
-  ctx.strokeStyle = color;
-  ctx.fillStyle = color;
-  ctx.lineWidth = 3.5;
-  ctx.beginPath();
-  ctx.moveTo(fromX, fromY);
-  ctx.lineTo(fromX, endY);
-  ctx.stroke();
-  // Cabeza
-  const dir = Math.sign(len);
-  ctx.beginPath();
-  ctx.moveTo(fromX, endY);
-  ctx.lineTo(fromX - 6, endY - 10 * dir);
-  ctx.lineTo(fromX + 6, endY - 10 * dir);
-  ctx.closePath();
-  ctx.fill();
-  // Etiqueta
-  ctx.font = "800 11.5px system-ui, sans-serif";
-  ctx.textAlign = "left";
-  ctx.textBaseline = "middle";
-  const labelY = endY + (dir > 0 ? 12 : -12);
-  ctx.fillText(`${symbol} = ${valueText}`, fromX + 8, labelY);
-  ctx.restore();
-}
-
-function drawFreeBodyDiagram(ctx, cx, massY, massW, massH) {
-  // Sólo fuerzas verticales (sistema masa-resorte vertical).
-  // Coordenada de pantalla: y crece hacia abajo.
-  const Fk = springForceUp();           // signo físico (positivo = hacia arriba)
-  const W = state.mass * state.gravity; // siempre hacia abajo
-  const Fb = dampingForceVertical();    // signo físico
-  const Fext = externalForceVertical(); // signo físico (positivo hacia abajo o arriba según motor)
-
-  // Factor de escala visual común para todas las fuerzas (1 N → ~36 px).
-  const allMag = [Math.abs(Fk), W, Math.abs(Fb), Math.abs(Fext)];
-  const maxMag = Math.max(0.001, ...allMag);
-  const maxDisplayPx = 70;
-  const k_scale = maxDisplayPx / maxMag;
-
-  // Convertir a desplazamiento en píxeles (positivo hacia abajo en canvas).
-  const fkPx = -Fk * k_scale;   // si Fk>0 (hacia arriba), debe ir hacia arriba (dy<0)
-  const wPx = W * k_scale;       // hacia abajo
-  const fbPx = -Fb * k_scale;
-  const fextPx = -Fext * k_scale; // convención: F(t) actúa "tirando" verticalmente
-
-  const topAnchor = { x: cx - massW / 2 - 18, y: massY - massH * 0.15 };
-  const bottomAnchor = { x: cx + massW / 2 + 18, y: massY + massH * 0.15 };
-  const leftFar = { x: cx - massW / 2 - 70, y: massY };
-  const rightFar = { x: cx + massW / 2 + 70, y: massY };
-
-  // F_k (fuerza elástica) — anclada arriba a la izquierda
-  drawForceArrow(
-    ctx,
-    topAnchor.x,
-    topAnchor.y,
-    fkPx,
-    "#2563eb",
-    "F_k = −kx",
-    `${fmt(Fk, 2)} N`
-  );
-
-  // W (peso) — anclada abajo a la derecha
-  drawForceArrow(
-    ctx,
-    bottomAnchor.x,
-    bottomAnchor.y,
-    wPx,
-    "#dc2626",
-    "W = mg",
-    `${fmt(W, 2)} N`
-  );
-
-  // F_b (viscosa) — anclada a la izquierda, sólo si hay amortiguamiento
-  if (state.mode !== "free") {
-    drawForceArrow(
-      ctx,
-      leftFar.x,
-      leftFar.y,
-      fbPx,
-      "#16a34a",
-      "F_b = −bẋ",
-      `${fmt(Fb, 2)} N`
-    );
-  }
-
-  // F(t) externa — anclada a la derecha, sólo en modo forzado
-  if (state.mode === "forced") {
-    drawForceArrow(
-      ctx,
-      rightFar.x,
-      rightFar.y,
-      fextPx,
-      "#d97706",
-      "F(t) = F₀cos(ωt)",
-      `${fmt(Fext, 2)} N`
-    );
-  }
-}
-
 function drawKinematicVectors(ctx, cx, massY, massW) {
-  // Velocidad: hacia donde se mueve la masa. v>0 → hacia abajo (x positivo abajo).
+  // Velocidad: hacia donde se mueve la masa. v>0 → hacia abajo (y positivo abajo).
   if (state.showVelocity) {
     const vPx = clamp(state.v * 60, -90, 90);
-    drawSideArrow(ctx, cx + massW / 2 + 110, massY, vPx, "#2f67d8", "ẋ", `${fmt(state.v, 2)} m/s`);
+    drawSideArrow(ctx, cx + massW / 2 + 110, massY, vPx, "#2f67d8", "ẏ", `${fmt(state.v, 2)} m/s`);
   }
   if (state.showAcceleration) {
     const aPx = clamp(accelerationAt() * 8, -90, 90);
@@ -1010,7 +873,7 @@ function drawKinematicVectors(ctx, cx, massY, massW) {
       massY,
       aPx,
       "#c84646",
-      "ẍ",
+      "ÿ",
       `${fmt(accelerationAt(), 2)} m/s²`
     );
   }
@@ -1109,7 +972,7 @@ function drawRuler(ctx, w, h, equilibriumY, scale) {
   }
   ctx.fillStyle = "#17201d";
   ctx.font = "800 11px system-ui, sans-serif";
-  ctx.fillText("x [cm]", x - 30, 44);
+  ctx.fillText("y [cm]", x - 30, 44);
   ctx.restore();
 }
 
@@ -1277,12 +1140,12 @@ function drawTimeGraph(ctx, w, h) {
   const yRangeCm = autoRange(maxXm * 100);
 
   const inner = plotBox(ctx, w, h, {
-    title: "x(t)",
+    title: "y(t)",
     xLabel: "t [s]",
-    yLabel: "x [cm]"
+    yLabel: "y [cm]"
   });
 
-  // Eje x = 0 (línea base)
+  // Eje y = 0 (línea base)
   ctx.save();
   ctx.strokeStyle = "rgba(23, 32, 29, 0.6)";
   ctx.lineWidth = 1.4;
@@ -1322,7 +1185,7 @@ function drawTimeGraph(ctx, w, h) {
     plotSeries(ctx, inner, envelopeNeg, map, "#d97706", 1.7, true);
   }
 
-  // Curva x(t)
+  // Curva y(t)
   plotSeries(ctx, inner, data, map, "#168965", 2.6);
 }
 
@@ -1334,9 +1197,9 @@ function drawPhaseGraph(ctx, w, h) {
   const yRange = autoRange(maxVm * 100);
 
   const inner = plotBox(ctx, w, h, {
-    title: "ẋ vs x · diagrama de fase",
-    xLabel: "x [cm]",
-    yLabel: "ẋ [cm/s]"
+    title: "ẏ vs y · diagrama de fase",
+    xLabel: "y [cm]",
+    yLabel: "ẏ [cm/s]"
   });
   // Ejes en cero
   ctx.save();
@@ -1616,7 +1479,7 @@ function drawResonanceStatic() {
 
 function exportCsv() {
   const rows = [
-    ["t_s", "x_m", "v_m_s", "a_m_s2", "Ec_J", "Ep_J", "E_total_J"],
+    ["t_s", "y_m", "vy_m_s", "ay_m_s2", "Ec_J", "Ep_J", "E_total_J"],
     ...state.history.map((d) => [d.t, d.x, d.v, d.a, d.kinetic, d.potential, d.total])
   ];
   const csv = rows.map((row) => row.map((value) => String(value)).join(",")).join("\n");
@@ -1678,7 +1541,6 @@ function syncStateFromInputs(resetAmplitude = false) {
   state.force = Number(els.forceInput.value);
   state.driveFrequency = Number(els.driveInput.value);
   state.speed = Number(els.speedSelect.value);
-  state.showForces = els.showForces ? els.showForces.checked : true;
   state.showVelocity = els.showVelocity.checked;
   state.showAcceleration = els.showAcceleration.checked;
   state.showEquilibrium = els.showEquilibrium.checked;
@@ -1737,7 +1599,7 @@ function bindEvents() {
     applyMediumPreset();
     syncStateFromInputs(false);
   });
-  [els.showForces, els.showVelocity, els.showAcceleration, els.showEquilibrium, els.showTrace]
+  [els.showVelocity, els.showAcceleration, els.showEquilibrium, els.showTrace]
     .filter(Boolean)
     .forEach((input) => {
       input.addEventListener("change", () => syncStateFromInputs(false));
